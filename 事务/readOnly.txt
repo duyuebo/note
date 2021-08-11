@@ -1,0 +1,5 @@
+Spring 事物注解@Transactional（readOnly=true）
+
+只读事务内，不能进行增、删、改操作，否则出现异常：cannot execute statement in a read-only transaction；
+只读事务内，同一个查询方法的多次调用查询结果一致，不会读取到其他事务修改提交后的数据；
+加只读事务，ORM框架会对其进行查询优化；
