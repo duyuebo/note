@@ -38,25 +38,6 @@ module.exports = {
 
 ![image-20211227153747638](Vue项目.assets/image-20211227153747638.png)
 
-8.  ！！
-9. ！. ts中！作为后缀是Non-null Assertion Operator，表示!前的值一定不是**<font color=red >null</font>**或者**<font color=red >undefined</font>**
-
-```ts
-submitButton.value!.disabled = true;
-```
-
-10. ?.
-
-表示对象可能是 'undefined'
-
-```ts
-// Error - might crash if 'obj.last' wasn't provided!
-console.log(obj.last.toUpperCase());
-
-console.log(obj.last?.toUpperCase());//会编译为以下js代码
-->console.log((_a = obj.last) === null || _a === void 0 ? void 0 : _a.toUpperCase());
-```
-
 11. ref对象不需要赋值直接初始化传递null ``` const addEmployeeModalRef = ref<null | HTMLFormElement>(null);```，ref对象没return的情况下会出现null
 
 ![image-20211227154511772](Vue项目.assets/image-20211227154511772.png)
@@ -165,8 +146,6 @@ console.log(obj.last?.toUpperCase());//会编译为以下js代码
 30. 
 
 32. 
-
-### 2. vee-validate
 
 ### 3. jwt
 
@@ -505,4 +484,40 @@ java.io.BufferedInputStream@3e74929a
 
 4. 
 
-## 3.其他问题
+## 3. 其他问题
+
+## 4. Metronic前端框架使用
+
+1. core->jwtService 本地存储token的方式修改为sessionStorage
+2. stores->auth.js 修改login方法
+
+## 5. vee-validate、yup
+
+## 6. TypeScript
+
+1. ！！
+
+   ```typescript
+   var o={flag1:true};   
+   var test1=!!o.flag1 //等效于var test1=o.flag1||false;  
+   ```
+
+   
+
+2. ！. ts中！作为后缀是Non-null Assertion Operator，表示!前的值一定不是**<font color=red >null</font>**或者**<font color=red >undefined</font>**
+
+```ts
+submitButton.value!.disabled = true;
+```
+
+3. ?.
+
+表示对象可能是 'undefined'
+
+```typescript
+// Error - might crash if 'obj.last' wasn't provided!
+console.log(obj.last.toUpperCase());
+
+console.log(obj.last?.toUpperCase());//会编译为以下js代码
+->console.log((_a = obj.last) === null || _a === void 0 ? void 0 : _a.toUpperCase());
+```
