@@ -30,6 +30,8 @@
 
 * state
 
+* *pinia* 中状态的值仅在内存中存在，刷新会导致浏览器存储中的数据没了。
+
 # Router
 
 * 基本使用
@@ -45,3 +47,94 @@
   * 正则表达式匹配
 
 * 嵌套路由
+
+  * 嵌套路由中，子路由匹配路径使用 /开头
+
+    ```typescript
+    const routes: Array<RouteRecordRaw> = [
+      {
+        path: "/",
+        redirect: "/dashboard",
+        component: () => import("@/layouts/main-layout/MainLayout.vue"),
+        meta: {
+          middleware: "auth",
+        },
+        children: [
+          {
+            path: "/dashboard",
+            name: "dashboard",
+            component: () => import("@/views/Dashboard.vue"),
+            meta: {
+              pageTitle: "Dashboard",
+              breadcrumbs: ["Dashboards"],
+            },
+          },
+        ],
+      },
+      {
+        path: "/",
+        component: () => import("@/layouts/AuthLayout.vue"),
+        children: [
+          {
+            path: "/sign-in",
+            name: "sign-in",
+            component: () =>
+              import("@/views/crafted/authentication/basic-flow/SignIn.vue"),
+            meta: {
+              pageTitle: "Sign In",
+            },
+          }
+        ]
+      }
+    ];
+    ```
+
+    如果子路由的path的最前边有“/”，则不需要加父路由的路径即可访问此子组件,此组件的渲染位置还是父组件的```<router-view></router-view>```标签内
+
+    对应以上代码的MainLayout.vue页面中定义的<router-view></router-view>内
+
+  * 多个路由使用同一个path例如 /，主要配合子路由使用，此时子路由使用/开头表示，父路由相同的path主要用来指示子路由渲染的位置
+
+    ```typescript
+    // path:"/" 没有实际的意义，主要用来指示子路由/dashboard时展示的视图在MainLayout.vue的路由内定义
+    {
+        path: "/",
+        redirect: "/dashboard",
+        component: () => import("@/layouts/main-layout/MainLayout.vue"),
+        meta: {
+          middleware: "auth",
+        },
+        children: [
+          {
+            path: "/dashboard",
+            name: "dashboard",
+            component: () => import("@/views/Dashboard.vue"),
+            meta: {
+              pageTitle: "Dashboard",
+              breadcrumbs: ["Dashboards"],
+            },
+          },
+        ]
+    },
+    {
+        path: "/",
+        component: () => import("@/layouts/AuthLayout.vue"),
+        children: [
+          {
+            path: "/sign-in",
+            name: "sign-in",
+            component: () =>
+              import("@/views/crafted/authentication/basic-flow/SignIn.vue"),
+            meta: {
+              pageTitle: "Sign In",
+            },
+          },
+        ]
+    }
+    ```
+
+    
+
+  *  
+
+* 

@@ -16,7 +16,36 @@
 
 3. 子组件是否继承父组件的properties属性。
 
-   否。在子项目中不能使用父项目定义的properties。
+   否。在子项目中不能使用父项目定义的properties。但是子组件可以覆盖父组件定义的properties值。
 
-4. 
+4. 在父项目的 dependencyManagement->dependencies 引入的jar文件，在子项目没有实际引用的时候不进行下载（显示红色）。
+
+5. 多模块项目，主项目打包时，提示找不到子模块。
+
+   * 子模块pom文件配置打包行为如下：
+
+     ```xml
+     <build>
+             <plugins>
+                 <plugin>
+                     <groupId>org.springframework.boot</groupId>
+                     <artifactId>spring-boot-maven-plugin</artifactId>
+                     <configuration>
+                         <skip>true</skip>
+                     </configuration>
+                 </plugin>
+             </plugins>
+         </build>
+     ```
+
+   * 在项目根路径下执行：
+
+     ```bash
+     mvn clean install
+     mvn dependency:tree
+     ```
+
+   * 然后再在主文件上执行：**package **命令
+
+6. 
 

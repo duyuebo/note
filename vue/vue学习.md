@@ -74,6 +74,10 @@ Vue SFC 是一个框架指定的文件格式，因此必须交由 [@vue/compiler
 
 ## 组件
 
+* 组件名称：
+
+  在 3.2.34 或以上的版本中，使用 `<script setup>` 的单文件组件会自动根据文件名生成对应的 `name` 选项，无需再手动声明。
+
 * 父组件传递数据到子组件
 
   * Props
@@ -92,6 +96,18 @@ Vue SFC 是一个框架指定的文件格式，因此必须交由 [@vue/compiler
 
   * 单向数据流
 
+    * 接收props，将数据与源断开 formData.value = Object.assign({}, props.editEmployee);
+
+      ```typescript
+      //未解决
+      formData.value = props.editEmployee;
+      //会导致,即使执行以下语句
+      formData.value = initEmployeeVal();
+      //还会影响父组件里的table当前行数据，显示为上一次选中行里的数据？
+      ```
+
+    * 
+
 * 监听子组件发生的事件
 
   * 组件触发的事件**没有冒泡机制**
@@ -107,6 +123,10 @@ Vue SFC 是一个框架指定的文件格式，因此必须交由 [@vue/compiler
   * 如果一个原生事件的名字 (例如 `click`) 被定义在 `emits` 选项中，则监听器只会监听组件触发的 `click` 事件而不会再响应原生的 `click` 事件
 
 * 使用 `<component :is="...">` 来在多个组件间作切换时
+
+  * is 中的内容 被注册的组件名、导入的组件对象
+  * 当使用 `<component :is="...">` 来在多个组件间作切换时，被切换掉的组件会被卸载。我们可以通过```<KeepAlive>```强制被切换掉的组件仍然保持“存活”的状态
+  * ```<KeepAlive>``` 包含的组件会触发 ```onActivated```,```onDeactivated```，用这个可以更新组件数据
 
 * 组件使用v-model,v-model默认属性名称为：modelValue，可以通过v-model:title将modelValue改为title
 
@@ -211,6 +231,42 @@ Vue SFC 是一个框架指定的文件格式，因此必须交由 [@vue/compiler
     
 
   * 
+
+* 多个路由地址指向同一个vue组件时，此时会发生组件重用，导致写在 ```<script lang="ts" setup>```里的代码不会重新执行，以及```onMounted```内的代码也不会重新执行。此时可通过监听路由地址变化来重新获取数据
+
+  ```typescript
+  // 设置immediate为true，可将获取数据逻辑全部移入这一位置，取消掉onMounted内的数据获取
+  watch(
+    () => router.currentRoute.value.path,
+    (newVal, old) => {
+      const statusStr = newVal.substring(newVal.lastIndexOf("/") + 1);
+      switch (statusStr) {
+        case "new":
+          status = 1;
+          break;
+        case "review":
+          status = 2;
+          break;
+        case "reject":
+          status = 3;
+          break;
+        case "review-pass":
+          status = 4;
+          break;
+        case "finish":
+          status = 9;
+          break;
+      }
+      nextTick(() => {
+        queryCondition.status = status;
+        queryTableData(queryCondition);
+      });
+    },
+    { immediate: true }
+  );
+  ```
+
+  
 
 *  
 

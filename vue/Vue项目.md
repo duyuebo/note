@@ -159,6 +159,8 @@ jwt的优缺点：
 
 2. 如何等待一个Promise执行完成？（指这个方法执行完时，里面所以的异步也已经执行完成）。
 
+3. finally如何实现
+
 ### 5. Bootstrap5
 
 1. vue 中 使用bootstrap5 modal时，判断modal显示时，使用：
@@ -484,16 +486,9 @@ java.io.BufferedInputStream@3e74929a
 
 4. 
 
-## 3. 其他问题
+## 3. vee-validate、yup
 
-## 4. Metronic前端框架使用
-
-1. core->jwtService 本地存储token的方式修改为sessionStorage
-2. stores->auth.js 修改login方法
-
-## 5. vee-validate、yup
-
-## 6. TypeScript
+## 4. TypeScript
 
 1. ！！
 
@@ -501,8 +496,6 @@ java.io.BufferedInputStream@3e74929a
    var o={flag1:true};   
    var test1=!!o.flag1 //等效于var test1=o.flag1||false;  
    ```
-
-   
 
 2. ！. ts中！作为后缀是Non-null Assertion Operator，表示!前的值一定不是**<font color=red >null</font>**或者**<font color=red >undefined</font>**
 
@@ -521,3 +514,75 @@ console.log(obj.last.toUpperCase());
 console.log(obj.last?.toUpperCase());//会编译为以下js代码
 ->console.log((_a = obj.last) === null || _a === void 0 ? void 0 : _a.toUpperCase());
 ```
+
+4. 接口
+5. 类
+6. Partial<T> 可以快速把某个接口类型中定义的属性变成可选的(Optional)
+
+## 5. Metronic 8.1.8
+
+### 5.1 项目配置
+
+1. 登录：
+
+   * src\core\services\JwtService.ts 本地存储token的方式修改为sessionStorage
+   * src\stores\auth.ts 修改login http请求
+   * src\views\crafted\authentication\basic-flow\SignIn.vue 修改登录逻辑
+
+2. 路由相关：
+
+   * src\main.ts 里加载了 src\router\index.ts 配置的路由信息
+
+     ```typescript
+     import router from "./router";
+     app.use(router);
+     ```
+
+   * src\router\index.ts 中配置了路由信息和导航守卫
+
+   * 修改定义的routes路由信息
+
+3. 左侧菜单：
+
+   * src\core\config\MainMenuConfig.ts 配置菜单
+   * src\layouts\main-layout\sidebar\SidebarMenu.vue 读取菜单信息并展示到左侧页面
+   * src\layouts\main-layout\header\menu\MenuPages.vue 读取菜单信息并展示到上方页面
+
+4. 页面布局样式配置：
+
+   * 修改项目的配置样式：src\core\config\DefaultLayoutConfig.ts，配置修改后不生效原因：因为已将配置信息存储到浏览器存储中。
+
+5.  
+
+### 5.2 其他问题
+
+1. import 导入的数据，在页面没有刷新的情况下不会重新读取。
+
+   在UserMenuConfig里导出了从后端获取的数据,但当后端数据发生改变的时候，页面不刷新的情况下不会重新执行import导入。
+
+   解决方式：由原来的导出数据改为导出获取数据的函数。
+
+2. 项目绑定在vue上的对象axios偶尔会发生丢失的问题。
+
+   ```typescript
+   //main.ts
+   ApiService.init(app);
+   
+   //ApiService 中的 init函数
+   ApiService.vueInstance = app;
+   ApiService.vueInstance.use(VueAxios, axios);
+   
+   //控制台偶尔会报axios找不到。可能是开发环境热加载引起的问题。
+   //TypeError: Cannot read properties of undefined (reading 'axios')
+   ```
+
+3. 项目中这两个文件不存在
+
+   http://media/misc/auth-bg.png
+   http://media/stock/900x600/42.png
+
+4. google font加载不到处理
+
+   fonts.googleapis.com -> fonts.font.im
+
+5. 

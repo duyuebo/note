@@ -142,5 +142,12 @@
 
     * 现在处理方式为将自定义异常转为从RuntimeException类进行继承
 
-15. 
+15. 出现数据类型转换异常的时候，可能是实体类缺少默认构造函数造成的。
+
+    ```
+    ibatis java.lang.NumberFormatException: For input string
+    com.mysql.cj.exceptions.DataConversionException: Cannot determine value type from string
+    ```
+
+16. 
 
