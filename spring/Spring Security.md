@@ -16,7 +16,64 @@ credentials:证件信息(例如:用户名/密码)
 
 ### 基本内容
 
-1. DelegatingFilterProxy(委托过滤器代理)
+1. ApplicationFilterChain
+
+   ![image-20231125101815028](https://s2.loli.net/2023/11/25/wYiUSnf16FLEgD9.png)
+
+   ![](https://s2.loli.net/2023/11/25/GkxPflhqNXWi5bR.png)
+
+   
+
+   ![image-20231124103054442](https://s2.loli.net/2023/11/24/6l7fDmTYwMyn8FO.png)
+
+   * **springSecurityFilterChain** 这个bean什么时候注册到容器中的？
+
+     springSecurityFilterChain是先通过spring的autoconfiguration注入spring容器中，然后被DelegatingFilterProxyRegistrationBean注入到[servlet](https://so.csdn.net/so/search?q=servlet&spm=1001.2101.3001.7020)容器中。
+
+     @EnableWebSecurity 这个bean导入了**WebSecurityConfiguration**，WebSecurityConfiguration里定义了Bean **springSecurityFilterChain**
+
+     ![image-20231124150634625](https://s2.loli.net/2023/11/24/TFLzldtGikUoYm9.png)
+
+     ![image-20231124150828699](https://s2.loli.net/2023/11/24/Z5THFkw68IpVQCD.png)
+
+   * 为什么不是**DelegatingFilterProxy** 类型而是 **DelegatingFilterProxyRegistrationBean** 这个类型？
+
+     ```java
+     // springSecurityFilterChain 这个bean什么时候注册到容器中的？ 
+     @Bean
+     @ConditionalOnBean(name = "springSecurityFilterChain")    // 容器中有名为 springSecurityFilterChain 的 Bean 时满足条件 
+     public DelegatingFilterProxyRegistrationBean securityFilterChainRegistration(
+         SecurityProperties securityProperties) {
+         DelegatingFilterProxyRegistrationBean registration = new DelegatingFilterProxyRegistrationBean(
+                 "springSecurityFilterChain");
+         registration.setOrder(securityProperties.getFilter().getOrder());
+         registration.setDispatcherTypes(getDispatcherTypes(securityProperties));
+         return registration;
+     }
+     
+     ```
+
+     **DelegatingFilterProxyRegistrationBean** 会在容器启动的时候向容器中注册 **DelegatingFilterProxy**这个bean。
+
+   * 继承层次 ServletContextInitializer (是 Spring 自己的实现，在 Spring 容器启动时会被调用)
+
+     ![image-20231124104606146](https://s2.loli.net/2023/11/24/KkNYqVGaT4MniEe.png)
+
+   * **@EnableWebSecurity** 为什么没有加这个注解感觉Spring Security也能生效？
+
+     配置文件 org.springframework.boot.autoconfigure.AutoConfiguration.imports 中加载了
+
+     ![image-20231125092354076](https://s2.loli.net/2023/11/25/nHaFEBKhPOqyDNb.png)
+
+     **SecurityAutoConfiguration** 引入了`@Import({ SpringBootWebSecurityConfiguration.class, SecurityDataConfiguration.class })`
+
+     在**SpringBootWebSecurityConfiguration**中自动配置了这个注解。
+
+     ![image-20231125091535624](https://s2.loli.net/2023/11/25/nYe76ObXc3qzP1f.png)
+
+   * 
+
+2. **DelegatingFilterProxy**(委托过滤器代理)
 
    * bridging between the Servlet container’s lifecycle and Spring’s `ApplicationContext`.The Servlet container allows registering `Filter`s using its own standards, but it is not aware of Spring defined Beans. `DelegatingFilterProxy` can be registered via standard Servlet container mechanisms, but delegate all the work to a Spring Bean that implements `Filter`.`DelegatingFilterProxy` looks up *Bean Filter0* from the `ApplicationContext` and then invokes *Bean Filter*
 
@@ -30,15 +87,19 @@ credentials:证件信息(例如:用户名/密码)
 
      ![img](https://howtodoinjava.com/wp-content/uploads/2023/05/Spring-Security-Architechture.svg)
 
+     You can see that this hypothetical picture above has the `FilterChainProxy` as a second filter in the **Filter Chain** (the dashed box). Once the `FilterChainProxy` is done processing its `SecurityFilterChain` filters, it will call the `originalChain` (dashed box) to resume the processing of the remaining filters, in the above scenario, Filter2.
+
    * Once the request reaches registered filters inside the *SecurityFilterChain*, the corresponding filters delegate the request to other beans for performing corresponding tasks. For example, *AuthenticationProcessingFilter* prepares the *Authentication* instance and delegates it to *AuthenticationManager* for [authentication flow](https://howtodoinjava.com/spring-security/custom-authentication-providers/).
 
    * DelegatingFilterProxy. It delegates request processing to a filter registered in the application context, and in the case of Spring Security, this filter will be the FilterChainProxy. The FilterChainProxy is responsible for processing requests through the security filter chain known as SecurityFilterChain。
 
-2. FilterChainProxy(过滤器链代理)
+   * ![image-20231117175135813](https://s2.loli.net/2023/11/17/RQxrhINfLtAbzYF.png)![image-20231117175158632](https://s2.loli.net/2023/11/17/2w7KgRV3UXDhs5r.png)
+
+3. **FilterChainProxy**(过滤器链代理)
 
    Spring Security’s Servlet support is contained within `FilterChainProxy`. `FilterChainProxy` is a special `Filter` provided by Spring Security that allows delegating to many `Filter` instances through `SecurityFilterChain`. Since `FilterChainProxy` is a Bean, it is typically wrapped in a `DelegatingFilterProxy`.
 
-3. SecurityFilterChain(安全过滤器链)
+4. **SecurityFilterChain**(安全过滤器链)
 
    `SecurityFilterChain`is used by `FilterChainProxy` to determine which Spring Security `Filter`s should be invoked for this request.
 
@@ -60,25 +121,23 @@ credentials:证件信息(例如:用户名/密码)
    }
    ```
 
-   
-
-4. `ExceptionTranslationFilter`
+5. **ExceptionTranslationFilter**
 
    ![exceptiontranslationfilter](https://s2.loli.net/2023/11/08/cCJ3HPwzFXLflBe.png)
 
-5. SecurityContextHolder
+6. **SecurityContextHolder**
 
    At the heart of Spring Security’s authentication model is the `SecurityContextHolder`. It contains the [SecurityContext](https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html#servlet-authentication-securitycontext).
 
    ![securitycontextholder](https://s2.loli.net/2023/11/08/L6ogGXCxHzFqhfj.png)
 
-6. SecurityContext
+7. **SecurityContext**
 
-7. Authentication
+8. **Authentication**
 
-8. GrantedAuthority
+9. **GrantedAuthority**
 
-9. AuthenticationManager
+10. **AuthenticationManager**
 
    ```java
    public interface AuthenticationManager {
@@ -87,13 +146,13 @@ credentials:证件信息(例如:用户名/密码)
    }
    ```
 
-10. ProviderManager
+11. **ProviderManager**
 
     AuthenticationManager最常用的实现是`ProviderManager`，它委派了AuthenticationProvider实例链
 
     ![供应商经理](https://s2.loli.net/2023/11/08/cWDq6VBpvraQtiP.png)
 
-11. AuthenticationProvider
+12. **AuthenticationProvider**
 
     ```java
     public interface AuthenticationProvider {
@@ -111,13 +170,21 @@ credentials:证件信息(例如:用户名/密码)
 
     
 
-12. `AuthenticationEntryPoint`
+13. **AuthenticationEntryPoint**
 
     [`AuthenticationEntryPoint`](https://docs.spring.io/spring-security/site/docs/6.1.5/api/org/springframework/security/web/AuthenticationEntryPoint.html) is used to send an HTTP response that requests credentials from a client.
 
-13. AbstractAuthenticationProcessingFilter
+14. **AbstractAuthenticationProcessingFilter**
 
-    [`AbstractAuthenticationProcessingFilter`](https://docs.spring.io/spring-security/site/docs/6.1.5/api/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.html) is used as a base `Filter` for authenticating a user’s credentials. Before the credentials can be authenticated, Spring Security typically requests the credentials by using [`AuthenticationEntryPoint`](https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html#servlet-authentication-authenticationentrypoint).
+    [`AbstractAuthenticationProcessingFilter`](https://docs.spring.io/spring-security/site/docs/6.1.5/api/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.html) is used as a base `Filter` for authenticating a user’s credentials. Before the credentials can be 
+
+    
+
+    
+
+    
+
+    authenticated, Spring Security typically requests the credentials by using [`AuthenticationEntryPoint`](https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html#servlet-authentication-authenticationentrypoint).
 
     ![abstractauthenticationprocessingfilter](https://s2.loli.net/2023/11/08/6DoWjUlYQxzrITP.png)
 
@@ -139,7 +206,7 @@ credentials:证件信息(例如:用户名/密码)
     - `ApplicationEventPublisher` publishes an `InteractiveAuthenticationSuccessEvent`.
     - `AuthenticationSuccessHandler` is invoked. See the [`AuthenticationSuccessHandler`](https://docs.spring.io/spring-security/site/docs/6.1.5/api/org/springframework/security/web/authentication/AuthenticationSuccessHandler.html) interface.
 
-14. spring security 过滤器
+15. spring security 过滤器
 
     ![](https://s2.loli.net/2023/04/22/ZWMIG4hgtCRNVQO.png)
 
@@ -171,7 +238,13 @@ credentials:证件信息(例如:用户名/密码)
 
     * SecurityContextPersistenceFilter
 
+      * SecurityContextPersistenceFilter 是用来在认证之前从SecurityContextRepository获取SecurityContext，然后放入SecurityContextHolder中。
+
+      * 然后在其他filter执行完毕之后，再将SecurityContext 通过SecurityContextRepository存储到想要存储的地方，然后清理掉SecurityContextHolder中的SecurityContext
+
     * HeaderWriterFilter
+
+      * response写安全响应头信息的
 
     * CorsFilter
 
@@ -225,18 +298,21 @@ credentials:证件信息(例如:用户名/密码)
 
     * [`ExceptionTranslationFilter`](https://docs.spring.io/spring-security/reference/servlet/architecture.html#servlet-exceptiontranslationfilter)
 
+      * The [`ExceptionTranslationFilter`](https://docs.spring.io/spring-security/site/docs/6.2.0/api/org/springframework/security/web/access/ExceptionTranslationFilter.html) allows translation of [`AccessDeniedException`](https://docs.spring.io/spring-security/site/docs/6.2.0/api/org/springframework/security/access/AccessDeniedException.html) and [`AuthenticationException`](https://docs.spring.io/spring-security/site/docs/6.2.0/api//org/springframework/security/core/AuthenticationException.html) into HTTP responses。
+      * 
+
     * [`FilterSecurityInterceptor`](https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-requests.html#servlet-authorization-filtersecurityinterceptor)
 
     * SwitchUserFilter
 
-15. 配置spring security `WebSecurityConfigurerAdapter`
+16. 配置spring security `WebSecurityConfigurerAdapter`
 
     ```java
     @Configuration
     public class ApplicationSecurity extends WebSecurityConfigurerAdapter
     ```
 
-16. 认证过滤器中authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request))的作用
+17. 认证过滤器中authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request))的作用
 
     ```java
     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -254,7 +330,7 @@ credentials:证件信息(例如:用户名/密码)
 
     
 
-17. 
+18. 
 
 ### 总结
 
@@ -355,6 +431,24 @@ credentials:证件信息(例如:用户名/密码)
 
 1. 配置跨域过滤器。没解决！！！
 
+   ```java
+   	//官方配置示例
+   	@Bean
+   	public CorsConfigurationSource corsConfigurationSource() {
+   		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+   		CorsConfiguration config = new CorsConfiguration();
+   		config.addAllowedHeader("*");
+   		config.addAllowedMethod("*");
+   		config.addAllowedOrigin("http://127.0.0.1:4200");
+   		config.setAllowCredentials(true);
+   		source.registerCorsConfiguration("/**", config);
+   		return source;
+   	}
+   
+   ```
+
+   
+
    chrome://flags/#block-insecure-private-network-requests 设置disabled
 
    ```java
@@ -396,7 +490,44 @@ credentials:证件信息(例如:用户名/密码)
        }
    ```
 
-2. 不太清楚的组件 `SecurityContextRepository`，
+2. 不太清楚的组件 `SecurityContextRepository`，`SecurityContextHolderStrategy`，`SecurityContextHolder`
+
+3. `ForceEagerSessionCreationFilter`感觉这个组件怎么没有加到`springSecurityFilterChain`中？
+
+4. 默认的用户登录认证是`UsernamePasswordAuthenticationFilter`,默认的请求过滤器是什么，哪一个过滤器进行session信息存储到SecurityContext中？
+
+5. 授权过滤器如何判断用户是否登录？
+
+   * 从上下文中取出Authentication对象，通过判断这个对象是否已通过认证来确定用户是否登录。
+
+   * ```java
+     // AuthorizationFilter 通过授权过滤器 
+     AuthorizationDecision decision = this.authorizationManager.check(this::getAuthentication, request);
+     // authorizationManager 对象为: RequestMatcherDelegatingAuthorizationManager
+     // AuthenticatedAuthorizationManager
+     ```
+
+   * ![image-20231202153742410](https://s2.loli.net/2023/12/02/Ro7xfDCI8iqtZmb.png)
+
+   * ![image-20231202154356360](https://s2.loli.net/2023/12/02/OcM8o5mTzEjiwDZ.png)
+
+   * ![image-20231202154516687](https://s2.loli.net/2023/12/02/YSglo1c3jk6TRPL.png)
+
+   * ![image-20231202154552517](https://s2.loli.net/2023/12/02/FbpC7EUlXIHhLMg.png)
+
+6. 认证成功之后如何将用户登录信息保存下来。
+
+   * 登录后执行:
+
+     ![image-20231202172736886](https://s2.loli.net/2023/12/02/YzroudW5e4nUc12.png)
+
+   * 保存上下文信息到Repository中，方便下次访问的时候获取信息：
+
+     ![image-20231202172840134](https://s2.loli.net/2023/12/02/CBEfFG65iumLeUa.png)
+
+   * 
+
+7. 
 
 ## 十 登录认证流程
 
@@ -414,6 +545,8 @@ credentials:证件信息(例如:用户名/密码)
 
    * 没有抛出AuthenticationCredentialsNotFoundException是因为，默认spring security构造了一个匿名用户：
 
+     在哪个过滤器类中构造了一个匿名用户？
+     
      ![image-20231108215255423](https://s2.loli.net/2023/11/08/J2wmOaKqj7IMrk6.png)
 
    ![登录URL验证入口点](https://s2.loli.net/2023/11/08/E4kFT5LiGjuJnv1.png)

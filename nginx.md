@@ -31,4 +31,3 @@
   ```shell
   ./nginx -s quit
   ```
-
