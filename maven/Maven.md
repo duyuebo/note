@@ -47,5 +47,25 @@
 
    * 然后再在主文件上执行：**package **命令
 
-6. 
+6. 出现打包后文件很小，以及报 `*no main manifest attribute*`错误
+
+   ```xml
+   <!--添加插件-->
+   <build>
+       <plugins>
+           <plugin>
+               <groupId>org.springframework.boot</groupId>
+               <artifactId>spring-boot-maven-plugin</artifactId>
+               <configuration>
+                   <mainClass>com.baeldung.demo.DemoApplication</mainClass>
+                   <layout>JAR</layout>
+               </configuration>
+           </plugin>
+       </plugins>
+   </build>
+   ```
+
+   
+
+7. 
 

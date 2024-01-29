@@ -1,6 +1,6 @@
 # Spring
 
-#### 一. spring-boot
+## 一. spring-boot
 
 1. 项目配置文件``` application.yml```多模块合并的问题
 
@@ -22,9 +22,36 @@
          active: dev,xxx-dev
      ```
 
-     
+   * 可以使用 include 包含通用配置文件
+
+     ```yaml
+     spring:
+       application:
+         name: system-manage-bff
+       profiles:
+         include: repository
+         active: dev
+     ```
 
    * 
+
+2. 
+
+
+
+## 问题记录：
+
+1. application.yml 中如何将字符串值直接赋值给Java对象？
+
+   ```yaml
+   # public void setTimeout(Duration timeout) {
+   #		this.timeout = timeout;
+   #}
+   server:
+     servlet:
+       session:
+         timeout: 60
+   ```
 
 2. 
 

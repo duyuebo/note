@@ -330,16 +330,27 @@ credentials:证件信息(例如:用户名/密码)
 
     
 
-18. 
+18. 登出
+
+    * 在 **Spring Security** 用户登出配置中，**CSRF** 默认是开启的，并没有关闭，不支持 GET 类型的用户登出请求。
+    * 
+
+19. 
 
 ### 总结
 
 1. 一般将自己的认证过滤器加在 `UsernamePasswordAuthenticationFilter` 的前面,因为这是认证的起点.
 2. 
 
+## 三 核心类和组件
 
+* SecurityContextHolder
+* SecurityContextHolderStrategy
+* SecurityContextRepository
+* AuthenticationDetailsSource
+* AuthenticationDetailsSource
 
-## 三 我需要的安全处理内容
+## 四 我需要的安全处理内容
 
  ### 基本需求
 
@@ -353,7 +364,7 @@ credentials:证件信息(例如:用户名/密码)
 
 1. 
 
-## 四 问题
+## 五 问题
 
 1. spring security添加自定义过滤器时,是否对原先的过滤器链有影响?
 
@@ -397,7 +408,7 @@ credentials:证件信息(例如:用户名/密码)
 
 9. 
 
-## 五 安全框架配置依据
+## 六 安全框架配置依据
 
 1. 首先确认登录信息如何提交.依据不同的提交方式由不同的filter进行处理.
 
@@ -405,13 +416,13 @@ credentials:证件信息(例如:用户名/密码)
 
 2. 
 
-## 六 使用场景及处理方式
+## 七 使用场景及处理方式
 
 1. 确定系统登录方式.ajax提交还是,表单post提交.
 2. 确定系统登录结果处理方式,获取响应json 还是 跳转页面.
 3. 
 
-## 七 场景分类
+## 八 场景分类
 
 1. 系统可以访问用户的密码信息。
 
@@ -425,9 +436,9 @@ credentials:证件信息(例如:用户名/密码)
 
    * 
 
-## 八 JWT认证的优缺点
+## 九 JWT认证的优缺点
 
-## 九 其他问题
+## 十 其他问题
 
 1. 配置跨域过滤器。没解决！！！
 
@@ -529,7 +540,7 @@ credentials:证件信息(例如:用户名/密码)
 
 7. 
 
-## 十 登录认证流程
+## 十一 登录认证流程
 
 ### 以表单登录为例:
 
@@ -571,6 +582,6 @@ credentials:证件信息(例如:用户名/密码)
 
 5. 213
 
-## 十一 授权：
+## 十二 授权：
 
 1. AuthorizationManager 

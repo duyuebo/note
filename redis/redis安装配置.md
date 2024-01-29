@@ -83,6 +83,7 @@ appendfilename "/data/appendonly-main.aof"
 #设置AOF备份策略
 appendfsync everysec
 #设置最大内存使用
+
 maxmemory 1g
 ```
 
@@ -93,6 +94,7 @@ maxmemory 1g
 protected-mode no
 #docker中设置为yes，容器会自动退出
 daemonize no
+
 maxmemory 1g
 ```
 
@@ -101,8 +103,22 @@ maxmemory 1g
 ##### 2. docker安装redis
 
 ```bash
-docker run -d -p 6379:6379 -v /opt/docker_files/redis/conf:/usr/local/etc/redis -v /opt/docker_files/redis/data:/data --name redis-main redis:6.2.3 redis-server /usr/local/etc/redis/redis-main.conf
+# docker启动命令
+docker run -it -p 6379:6379 --name redis \
+-v /opt/redis/data:/data \
+-v /opt/redis/conf:/etc/redis \
+-v /opt/redis/data/redis_main.log:/var/log/redis.log \
+-v /opt/redis/data/redis_main.pid:/var/run/redis_6379.pid \
+-d redis redis-server /etc/redis/redis.conf
+
+# 开机启动docker命令
+systemctl enable docker 
+
+# 设置docker 启动 自动运行 ,xxx为CONTAINER ID
+docker update --restart=always xxx
 ```
+
+
 
 ##### 3. 使用docker配置redis集群
 
@@ -131,6 +147,10 @@ docker run -d -p 6379:6379 -v /opt/docker_files/redis/conf:/usr/local/etc/redis 
   cluster-enabled yes
   cluster-config-file nodes-6380.conf
   cluster-node-timeout 15000
+  ```
+
+  ```shell
+  
   ```
 
   
